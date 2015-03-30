@@ -1,14 +1,15 @@
 <%-- 
     Document   : index
     Created on : Feb 11, 2015, 8:30:57 PM
-    Author     : John
+    Author     : John Miller
 --%>
-<%--
+
+<%
     Object objData = request.getAttribute("hotels");
     if (objData == null) {
-        response.sendRedirect("hotel");
+        response.sendRedirect("HotelController");
     }
---%>
+%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.util.*" %>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -52,10 +53,10 @@
         <div class="container-fluid">
             <h2>Hotel Manager</h2>
             <form class="form-horizontal" id="hotelForm" name="rectangleForm" method="POST" 
-                  action="hotelPU?action=editHotel" style="${formVisible}">
+                  action="HotelController?action=editHotel" style="${formVisible}">
                 <div class="table-responsive">
                     <button class="btn btn-info" type="button" id="hotelId" name="hotelId"  
-                            onclick="location.href = 'hotel?action=addForm'">Add Hotel</button>
+                            onclick="location.href = 'HotelController?action=addForm'">Add Hotel</button>
                     <table class="sortable table">
                         <thead>
                         <th>Name</th>
@@ -77,14 +78,14 @@
                                     <td>${hotel.postalCode}</td>
                                     <td>${hotel.notes}</td>
                                     <td><button class="btn btn-success" type="button" id="hotelId" name="hotelId"  
-                                                onclick="location.href = 'hotel?action=editForm&value=${hotel.hotelId}'">Edit Hotel</button></td>
+                                                onclick="location.href = 'HotelController?action=editForm&value=${hotel.hotelId}'">Edit Hotel</button></td>
                                     <td><button class="btn btn-danger" type="button" id="hotelId" name="hotelId"  
-                                                onclick="location.href = 'hotel?action=deleteHotel&value=${hotel.hotelId}'">Delete Hotel</button></td>
+                                                onclick="location.href = 'HotelController?action=deleteHotel&value=${hotel.hotelId}'">Delete Hotel</button></td>
                                 </tr>
                             </c:forEach>
                         </tbody>
                     </table><button class="btn btn-info" type="button" id="hotelId" name="hotelId"  
-                                    onclick="location.href = 'hotel?action=addForm'">Add Hotel</button>
+                                    onclick="location.href = 'HotelController?action=addForm'">Add Hotel</button>
                 </div>
             </form>
             <c:choose>
@@ -96,7 +97,7 @@
                 </c:otherwise>
             </c:choose>
             <form class="form-horizontal" id="hotelForm" name="rectangleForm" method="POST" 
-                  action="hotel?action=editHotel" style="${editFormVisible}">
+                  action="HotelController?action=editHotel" style="${editFormVisible}">
                 <fieldset>
                     <legend>Edit Hotel</legend>
                 </fieldset>
@@ -147,7 +148,7 @@
                     <div class="col-sm-offset-2 col-sm-10">
                         <input class="btn btn-warning" type="submit" name="submit" id="submit" value="Save" />           
                         <button class="btn btn-primary" type="button" id="hotelId" name="hotelId"  
-                                onclick="location.href = 'hotel?action=cancel'">Cancel</button>
+                                onclick="location.href = 'HotelController?action=cancel'">Cancel</button>
                     </div>
                 </div> 
             </form>
@@ -160,7 +161,7 @@
                 </c:otherwise>
             </c:choose>
             <form class="form-horizontal" id="hotelForm" name="rectangleForm" 
-                  method="POST" action="hotel?action=addHotel" style="${formVisible}">
+                  method="POST" action="HotelController?action=addHotel" style="${formVisible}">
                 <fieldset>
                     <legend>Add New Hotel</legend>
                 </fieldset>
@@ -204,7 +205,7 @@
                     <div class="col-sm-offset-2 col-sm-10">
                         <input class="btn btn-warning" type="submit" name="submit" id="submit" value="Save" />           
                         <button class="btn btn-primary" type="button" id="hotelId" name="hotelId"  
-                                onclick="location.href = 'hotel?action=cancel'">Cancel</button>
+                                onclick="location.href = 'HotelController?action=cancel'">Cancel</button>
                     </div>
                 </div> 
             </form>

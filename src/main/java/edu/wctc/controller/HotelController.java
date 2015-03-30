@@ -4,34 +4,36 @@ import edu.wctc.ejb.HotelFacade;
 import edu.wctc.entity.Hotel;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author John Miller
  */
-
 public class HotelController extends HttpServlet {
 
-    private final static String DESTINATION = "index.jsp";
-    private final static String VIEW_HOTEL = "viewHotel";
-    private final static String EDIT_FORM = "editForm";
-    private final static String EDIT_HOTEL = "editHotel";
-    private final static String ADD_FORM = "addForm";
-    private final static String ADD_HOTEL = "addHotel";
-    private final static String CANCEL = "cancel";
-    private final static String DELETE_HOTEL = "deleteHotel";
+    private static final Logger LOG = 
+            LoggerFactory.getLogger(HotelController.class);
+
+    private static final String DESTINATION = "index.jsp";
+    private static final String VIEW_HOTEL = "viewHotel";
+    private static final String EDIT_FORM = "editForm";
+    private static final String EDIT_HOTEL = "editHotel";
+    private static final String ADD_FORM = "addForm";
+    private static final String ADD_HOTEL = "addHotel";
+    private static final String CANCEL = "cancel";
+    private static final String DELETE_HOTEL = "deleteHotel";
 
     @Inject
     private HotelFacade service;
-    
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -41,25 +43,12 @@ public class HotelController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException, Exception {
-
+    protected void processRequest(HttpServletRequest request, 
+            HttpServletResponse response) throws ServletException, IOException {
+        LOG.debug("getting entitiy manager");
         response.setContentType("text/html;charset=UTF-8");
 
-//        ServletContext ctx = request.getServletContext();
-//        String driverClassName = ctx.getInitParameter("driverClassName");
-//        String url = ctx.getInitParameter("url");
-//        String username = ctx.getInitParameter("username");
-//        String password = ctx.getInitParameter("password");
-//        String hotelDao = ctx.getInitParameter("hotelDao");
-//        String hotelDb = ctx.getInitParameter("hotelDb");
-
-//        HotelFacade hf = null;
-//        hf = new HotelService(driverClassName, url, username, password, 
-//                hotelDao, hotelDb);
-        
         Hotel hotel = new Hotel();
-        
         List<Hotel> hotels = null;
         String addForm = null;
         String editForm = null;
@@ -70,6 +59,7 @@ public class HotelController extends HttpServlet {
         if (request.getParameter("action") != null) {
             selectedAction = request.getParameter("action");
         }
+        String hotelId = request.getParameter("hotelId");
         try {
             switch (selectedAction) {
                 case VIEW_HOTEL:
@@ -79,11 +69,12 @@ public class HotelController extends HttpServlet {
                 case EDIT_FORM:
                     editForm = "not null";
                     selectedValue = request.getParameter("value");
-                    hotel = service.find(Long.parseLong(selectedValue));
-                    
+                    hotel = service.find(Integer.valueOf(selectedValue));
+                    request.setAttribute("hotel", hotel);
                     request.setAttribute("hotelId", hotel.getHotelId());
                     request.setAttribute("hotelName", hotel.getHotelName());
-                    request.setAttribute("streetAddress", hotel.getStreetAddress());
+                    request.setAttribute("streetAddress", hotel
+                            .getStreetAddress());
                     request.setAttribute("city", hotel.getCity());
                     request.setAttribute("state", hotel.getState());
                     request.setAttribute("postalCode", hotel.getPostalCode());
@@ -91,10 +82,11 @@ public class HotelController extends HttpServlet {
                     request.setAttribute("editForm", editForm);
                     break;
                 case EDIT_HOTEL:
-                    
-                    hotel = service.find(Long.parseLong(request.getParameter("hotelId")));
+                    hotel = service.find(Integer.valueOf(request
+                            .getParameter("hotelId")));
                     hotel.setHotelName(request.getParameter("hotelName"));
-                    hotel.setStreetAddress(request.getParameter("streetAddress"));
+                    hotel.setStreetAddress(request
+                            .getParameter("streetAddress"));
                     hotel.setCity(request.getParameter("city"));
                     hotel.setState(request.getParameter("state"));
                     hotel.setPostalCode(request.getParameter("postalCode"));
@@ -109,13 +101,18 @@ public class HotelController extends HttpServlet {
                     request.setAttribute("addForm", addForm);
                     break;
                 case ADD_HOTEL:
-//                    hotel = new Hotel(request.getParameter("hotelName"),
-//                            request.getParameter("streetAddress"),
-//                            request.getParameter("city"),
-//                            request.getParameter("state"),
-//                            request.getParameter("postalCode"),
-//                            request.getParameter("notes"));
-//                    hs.addNewHotel(hotel);
+                    hotel = new Hotel();
+                    Integer id = (hotelId == null || hotelId.isEmpty()) 
+                            ? null : Integer.valueOf(hotelId);
+                    hotel.setHotelId(id);
+                    hotel.setHotelName(request.getParameter("hotelName"));
+                    hotel.setStreetAddress(request
+                            .getParameter("streetAddress"));
+                    hotel.setCity(request.getParameter("city"));
+                    hotel.setState(request.getParameter("state"));
+                    hotel.setPostalCode(request.getParameter("postalCode"));
+                    hotel.setNotes(request.getParameter("notes"));
+                    service.edit(hotel);
                     request.setAttribute("addForm", cancel);
                     viewForm = "not null";
                     request.setAttribute("viewForm", viewForm);
@@ -127,9 +124,9 @@ public class HotelController extends HttpServlet {
                     request.setAttribute("viewForm", viewForm);
                     break;
                 case DELETE_HOTEL:
-//                    selectedValue = request.getParameter("value");
-//                    hotel.setHotelId(Long.parseLong(selectedValue));
-//                    hs.deleteHotel(hotel);
+                    selectedValue = request.getParameter("value");
+                    hotel = service.find(Integer.valueOf(selectedValue));
+                    service.remove(hotel);
                     viewForm = "not null";
                     request.setAttribute("viewForm", viewForm);
                     break;
@@ -159,7 +156,7 @@ public class HotelController extends HttpServlet {
         try {
             processRequest(request, response);
         } catch (Exception ex) {
-            Logger.getLogger(HotelController.class.getName()).log(Level.SEVERE, null, ex);
+//            Logger.getLogger(HotelController.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -177,7 +174,7 @@ public class HotelController extends HttpServlet {
         try {
             processRequest(request, response);
         } catch (Exception ex) {
-            Logger.getLogger(HotelController.class.getName()).log(Level.SEVERE, null, ex);
+//            Logger.getLogger(HotelController.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

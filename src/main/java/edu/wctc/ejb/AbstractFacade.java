@@ -2,12 +2,15 @@ package edu.wctc.ejb;
 
 import java.util.List;
 import javax.persistence.EntityManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author John Miller
  */
 public abstract class AbstractFacade<T> {
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractFacade.class);
     private Class<T> entityClass;
 
     public AbstractFacade(Class<T> entityClass) {
@@ -21,18 +24,22 @@ public abstract class AbstractFacade<T> {
     }
 
     public void edit(T entity) {
+        LOG.debug("add or edit one");
         getEntityManager().merge(entity);
     }
 
     public void remove(T entity) {
+        LOG.debug("remove one");
         getEntityManager().remove(getEntityManager().merge(entity));
     }
 
     public T find(Object id) {
+        LOG.debug("find one");
         return getEntityManager().find(entityClass, id);
     }
 
     public List<T> findAll() {
+        LOG.debug("finding all");
         javax.persistence.criteria.CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
         cq.select(cq.from(entityClass));
         return getEntityManager().createQuery(cq).getResultList();
