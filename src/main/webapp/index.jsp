@@ -1,10 +1,4 @@
-<%-- 
-    Document   : index
-    Created on : Feb 11, 2015, 8:30:57 PM
-    Author     : John Miller
---%>
-
-<%
+]<%
     Object objData = request.getAttribute("hotels");
     if (objData == null) {
         response.sendRedirect("HotelController");
