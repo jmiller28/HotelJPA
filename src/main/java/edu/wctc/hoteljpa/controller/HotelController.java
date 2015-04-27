@@ -1,7 +1,7 @@
-package edu.wctc.controller;
+package edu.wctc.hoteljpa.controller;
 
-import edu.wctc.ejb.HotelFacade;
-import edu.wctc.entity.Hotel;
+import edu.wctc.hoteljpa.ejb.HotelFacade;
+import edu.wctc.hoteljpa.entity.Hotel;
 import java.io.IOException;
 import java.util.List;
 import javax.inject.Inject;

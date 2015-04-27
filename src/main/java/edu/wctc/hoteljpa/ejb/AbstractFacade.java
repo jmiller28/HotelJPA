@@ -1,4 +1,4 @@
-package edu.wctc.ejb;
+package edu.wctc.hoteljpa.ejb;
 
 import java.util.List;
 import javax.persistence.EntityManager;

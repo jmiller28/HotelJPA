@@ -1,6 +1,6 @@
-package edu.wctc.ejb;
+package edu.wctc.hoteljpa.ejb;
 
-import edu.wctc.entity.Hotel;
+import edu.wctc.hoteljpa.entity.Hotel;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;

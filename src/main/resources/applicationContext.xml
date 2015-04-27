@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jms="http://www.springframework.org/schema/jms"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:lang="http://www.springframework.org/schema/lang"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:sec="http://www.springframework.org/schema/security"
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+          http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+          http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+          http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms.xsd
+          http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+          http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang.xsd
+          http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+          http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+          http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+          http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+	  ">
+
+    <!-- use this to set a properties file location and provide access
+    to key=value pairs via Spring EL expressions (see dataSource below).
+    There are two reasons for doing this: 1) certain details can be configured
+    outside of the application .war, such as port numbers; and 2) sensitive 
+    information, such as a password, can be hidden from the developer of the app -->
+    <!-- context:property-placeholder location="file:/auction/bitbay.properties"/ -->
+
+	<context:property-placeholder location="file:///C:/Config/hotel.properties"/>
+	
+    <!-- Scans within the base package of the application for @Components to configure as beans -->
+    <context:component-scan base-package="edu.wctc.samples.jpahotel">
+        <context:exclude-filter type="regex" expression="edu\.wctc\.samples\.jpahotel\.secure\.repository.*" />
+        <context:exclude-filter type="regex" expression="edu\.wctc\.samples\.jpahotel\.secure\.util.*" />
+    </context:component-scan>
+    <context:annotation-config/>
+  
+    <!-- begin Spring Security config -->
+    <sec:global-method-security secured-annotations="enabled" />
+
+    <!-- Don't SSL encrypt static resources -->
+    <sec:http pattern="/resources/**" security="none"/>
+	<sec:http pattern="/css/**" security="none"/>
+    <sec:http pattern="/js/**" security="none"/>
+    <sec:http auto-config="true" use-expressions="true" access-denied-page="/loginerror.jsp">
+
+        <!-- On Glassfish, dev ports are 8080 and 8181, whereas on 
+        production its 80 and 443. However, current configuration of 
+        novotny.byteshop.net is to use dev ports with auto redirects configured
+        on server machine -->
+        <sec:port-mappings>
+            <sec:port-mapping http="8080" https="8181"/>
+        </sec:port-mappings>
+
+        <sec:intercept-url pattern="/login.jsp*" 
+                           access="isAnonymous()" requires-channel="https"/>
+        <sec:intercept-url pattern="/loginerror.jsp*" 
+                        access="isAnonymous()" requires-channel="https"/>
+		<sec:intercept-url pattern="/index.jsp*" 
+                        access="isAnonymous()" requires-channel="https"/>				   
+        <sec:intercept-url pattern="/admin/**" 
+						access="hasAnyRole('ROLE_ADMIN')" requires-channel="https" />    
+        <sec:intercept-url pattern="/member/**" 
+						access="hasAnyRole('ROLE_ADMIN', 'ROLE_MEMBER')" requires-channel="https" />
+
+		
+        
+        <sec:intercept-url 
+            pattern="/hotellookup.jsp" 
+            access="hasAnyRole('ROLE_USER', 'ROLE_ADMIN')" requires-channel="https" />
+        <sec:intercept-url 
+            pattern="/hotelmanagement.jsp" 
+            access="hasAnyRole('ROLE_ADMIN')" requires-channel="https" />		
+    
+	    <!-- Use custom form for login -->
+        <!--Lines  58 & 59 can be removed, if admin and user roles go to different pages
+            Extra code would be needed, see April 7th notes and text file provided
+            on Spring security -->
+        <sec:form-login 
+            login-processing-url="/j_spring_security_check"
+            login-page="/login.jsp" 
+            authentication-success-handler-ref="myAuthenticationHandler"
+            authentication-failure-url="/loginerror.jsp"/>
+            
+        <sec:logout logout-url="/j_spring_security_logout" 
+                    invalidate-session="true" 
+                    delete-cookies="JSESSIONID"
+                    logout-success-url="/index.jsp" />
+    </sec:http>
+
+    <sec:authentication-manager alias="authenticationManager">
+        <sec:authentication-provider>
+            <sec:password-encoder ref="encoderBean">
+                <sec:salt-source user-property="username"/>
+            </sec:password-encoder>
+            <sec:jdbc-user-service data-source-ref="dataSource" /> 
+
+        </sec:authentication-provider>
+    </sec:authentication-manager>
+    
+    <bean id="encoderBean" class="org.springframework.security.authentication.encoding.ShaPasswordEncoder">
+        <constructor-arg value="512" />
+        <property name="iterations" value="1024"/>
+    </bean>
+        
+    <!-- (Optional) Automatically receives and logs AuthenticationEvent messages -->
+    <bean id="loggerListener" class="org.springframework.security.authentication.event.LoggerListener"/>
+	
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="host" value="smtp.gmail.com"/>
+        <property name="username" value="${mail.username}"/>
+        <property name="password" value="${mail.password}"/>
+        <property name="port" value="587"/>
+        <property name="javaMailProperties">
+            <props>
+                <!-- Use SMTP transport protocol -->
+                <prop key="mail.transport.protocol">smtp</prop>
+                <!-- Use SMTP-AUTH to authenticate to SMTP server -->
+                <prop key="mail.smtp.auth">true</prop>
+                <!-- Use TLS to encrypt communication with SMTP server -->
+                <prop key="mail.smtp.starttls.enable">true</prop>
+                <prop key="mail.debug">true</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- this is a template message that we can pre-load with default state -->
+    <bean id="templateMessage" class="org.springframework.mail.SimpleMailMessage">
+        <!-- if using Gmail, the from must be the address of the account holder -->
+        <property name="from" value="${mail.username}"/>
+	<!-- replace the value text with your own -->
+        <property name="subject" value="Web App Registration - One More Step Required"/>
+    </bean>
+	
+	<!--This is used to direct the admin or user to the correct page -->
+    <bean id="myAuthenticationHandler" class="edu.wctc.hoteljpa.util.MyAuthenticationHandler" />
+
+    <!-- Server managed connection pool accessed via JNDI -->
+    <jee:jndi-lookup id="dataSource" jndi-name="jdbc/hotel"/>
+
+</beans>
